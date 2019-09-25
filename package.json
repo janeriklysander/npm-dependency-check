@@ -1,8 +1,8 @@
 {
 	"name": "npm-dependency-check",
-	"displayName": "NPM Dependency Check",
-	"description": "This plugin will help you make sure your local NPM packages are not out of date with the package.json specified versions.",
-	"version": "1.0.0",
+	"displayName": "npm Dependency Check",
+	"description": "This plugin will help you make sure your local npm packages are not out of date with the package.json specified versions.",
+	"version": "1.1.0",
 	"publisher": "janeriklysander",
 	"repository": {
 		"type" : "git",
@@ -10,6 +10,18 @@
 	},
 	"engines": {
 		"vscode": "^1.38.0"
+	},
+	"contributes": {
+		"configuration": {
+			"title": "npm Depencency Check",
+			"properties": {
+				"npm-dependency-check.openWarningInModal": {
+					"type": "boolean",
+					"default": false,
+					"description": "Open the warning in a popup modal."
+				}
+			}
+		}
 	},
 	"categories": [
 		"Other"
@@ -20,13 +32,10 @@
 	"main": "./dist/extension.js",
 	"scripts": {
 		"vscode:prepublish": "webpack --mode production",
-		"compile": "tsc -p ./",
-		"watch": "tsc -watch -p ./",
 		"pretest": "npm run compile",
 		"test": "node ./out/test/runTest.js",
 		"webpack": "webpack --mode development",
-		"webpack-dev": "webpack --mode development --watch",
-		"test-compile": "tsc -p ./"
+		"webpack-dev": "webpack --mode development --watch"
 	},
 	"devDependencies": {
 		"@types/glob": "^7.1.1",

@@ -25,29 +25,41 @@ export async function activate(context: vscode.ExtensionContext) {
       async () => checkInstalledModules(workspacePath),
       [],
       context.subscriptions
-		);
-		
-		checkInstalledModules(workspacePath);
+    );
+
+    checkInstalledModules(workspacePath);
   }
 }
 
-function checkInstalledModules(workspacePath: string) {
-  const command = "installed-check --version-check";
-  // const result = await exec(command, {});
-  exec(command, { cwd: workspacePath }).catch(() => {
-		const npmInstall = 'Fix this for me';
-    vscode.window.showWarningMessage(
-			"Your installed NPM packages are out of date.",
-			...[npmInstall]
-    ).then(async (value) => {
-			if (value === npmInstall) {
-				await exec('npm install', {cwd: workspacePath}).then(() => {
-					vscode.window.showInformationMessage('Your NPM packages are now up to date, happy coding!');
-				}).catch(() => {
-					vscode.window.showErrorMessage('Oh this is awkward, the "npm install" failed. Please try manually, sorry!');
-				});
-			}
-		});  
+async function checkInstalledModules(workspacePath: string) {
+  const config = vscode.workspace.getConfiguration("npm-dependency-check");
+  const installedCheckCommand = "installed-check --version-check";
+
+  await exec(installedCheckCommand, { cwd: workspacePath }).catch(() => {
+    const npmInstall = "Fix this for me";
+    vscode.window
+      .showWarningMessage(
+        "Your installed npm packages are out of date.",
+        {
+          modal: config.get<boolean>("openWarningInModal")
+        },
+        ...[npmInstall]
+      )
+      .then(async value => {
+        if (value === npmInstall) {
+          await exec("npm install", { cwd: workspacePath })
+            .then(() => {
+              vscode.window.showInformationMessage(
+                "Your npm packages are now up to date, happy coding!"
+              );
+            })
+            .catch(() => {
+              vscode.window.showErrorMessage(
+                'Oh this is awkward, the "npm install" failed. Please try manually, sorry!'
+              );
+            });
+        }
+      });
   });
 }
 
@@ -73,8 +85,7 @@ function exec(
   });
 }
 
-// this method is called when your extension is deactivated
 export function deactivate() {
-	console.log('deactivate');
+  console.log("deactivate");
   packageWatcher.dispose();
 }
