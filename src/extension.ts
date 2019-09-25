@@ -1,27 +1,80 @@
-// The module 'vscode' contains the VS Code extensibility API
-// Import the module and reference it with the alias vscode in your code below
-import * as vscode from 'vscode';
+import * as cp from "child_process";
+import * as fs from "fs";
+import * as path from "path";
+import * as vscode from "vscode";
 
-// this method is called when your extension is activated
-// your extension is activated the very first time the command is executed
-export function activate(context: vscode.ExtensionContext) {
+let packageWatcher: vscode.FileSystemWatcher;
 
-	// Use the console to output diagnostic information (console.log) and errors (console.error)
-	// This line of code will only be executed once when your extension is activated
-	console.log('Congratulations, your extension "npm-dependency-check" is now active!');
+export async function activate(context: vscode.ExtensionContext) {
+  if (!vscode.workspace.workspaceFolders) {
+    return;
+  }
 
-	// The command has been defined in the package.json file
-	// Now provide the implementation of the command with registerCommand
-	// The commandId parameter must match the command field in package.json
-	let disposable = vscode.commands.registerCommand('extension.helloWorld', () => {
-		// The code you place here will be executed every time your command is executed
+  for (let workspaceFolder of vscode.workspace.workspaceFolders) {
+    const workspacePath = workspaceFolder.uri.fsPath;
 
-		// Display a message box to the user
-		vscode.window.showInformationMessage('Hello World!');
-	});
+    const packagePattern = path.join(workspacePath, "package.json");
 
-	context.subscriptions.push(disposable);
+    if (!(await exists(packagePattern))) {
+      return;
+    }
+
+    packageWatcher = vscode.workspace.createFileSystemWatcher(packagePattern);
+
+    packageWatcher.onDidChange(
+      async () => checkInstalledModules(workspacePath),
+      [],
+      context.subscriptions
+		);
+		
+		checkInstalledModules(workspacePath);
+  }
+}
+
+function checkInstalledModules(workspacePath: string) {
+  const command = "installed-check --version-check";
+  // const result = await exec(command, {});
+  exec(command, { cwd: workspacePath }).catch(() => {
+		const npmInstall = 'Fix this for me';
+    vscode.window.showWarningMessage(
+			"Your installed NPM packages are out of date.",
+			...[npmInstall]
+    ).then(async (value) => {
+			if (value === npmInstall) {
+				await exec('npm install', {cwd: workspacePath}).then(() => {
+					vscode.window.showInformationMessage('Your NPM packages are now up to date, happy coding!');
+				}).catch(() => {
+					vscode.window.showErrorMessage('Oh this is awkward, the "npm install" failed. Please try manually, sorry!');
+				});
+			}
+		});  
+  });
+}
+
+function exists(file: string): Promise<boolean> {
+  return new Promise<boolean>((resolve, _reject) => {
+    fs.exists(file, value => {
+      resolve(value);
+    });
+  });
+}
+
+function exec(
+  command: string,
+  options: cp.ExecOptions
+): Promise<{ stdout: string; stderr: string }> {
+  return new Promise<{ stdout: string; stderr: string }>((resolve, reject) => {
+    cp.exec(command, options, (error, stdout, stderr) => {
+      if (error) {
+        reject({ error, stdout, stderr });
+      }
+      resolve({ stdout, stderr });
+    });
+  });
 }
 
 // this method is called when your extension is deactivated
-export function deactivate() {}
+export function deactivate() {
+	console.log('deactivate');
+  packageWatcher.dispose();
+}
