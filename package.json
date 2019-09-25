@@ -1,7 +1,7 @@
 {
 	"name": "npm-dependency-check",
 	"displayName": "npm Dependency Check",
-	"description": "This plugin will help you make sure your local npm packages are not out of date with the package.json specified versions.",
+	"description": "This extension will help you make sure your local npm packages are not out of date with the package.json specified versions.",
 	"version": "1.1.0",
 	"publisher": "janeriklysander",
 	"repository": {
@@ -31,11 +31,9 @@
 	],
 	"main": "./dist/extension.js",
 	"scripts": {
-		"vscode:prepublish": "webpack --mode production",
-		"pretest": "npm run compile",
-		"test": "node ./out/test/runTest.js",
-		"webpack": "webpack --mode development",
-		"webpack-dev": "webpack --mode development --watch"
+		"vscode:prepublish": "npm run-script build:prod",
+		"build": "webpack --mode development",
+		"build:prod": "webpack --mode production"
 	},
 	"devDependencies": {
 		"@types/glob": "^7.1.1",
