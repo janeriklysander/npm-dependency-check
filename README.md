@@ -8,11 +8,11 @@ If they were to be out of date a message will appear looking like this:
 
 If you click the button the plugin will attempt to run `npm install` and will show you this message on success:
 
-![npm install successful](docs\npm-install-successful.png)
+![npm install successful](docs/npm-install-successful.png)
 
 If the installation fails for whatever reason it will instead display this message:
 
-![npm install failed](docs\npm-install-failed.png)
+![npm install failed](docs/npm-install-failed.png)
 
 ## Release Notes
 
