@@ -4,6 +4,10 @@
 	"description": "This plugin will help you make sure your local NPM packages are not out of date with the package.json specified versions.",
 	"version": "1.0.0",
 	"publisher": "janeriklysander",
+	"repository": {
+		"type" : "git",
+		"url" : "https://github.com/janeriklysander/npm-dependency-check"
+	},
 	"engines": {
 		"vscode": "^1.38.0"
 	},
