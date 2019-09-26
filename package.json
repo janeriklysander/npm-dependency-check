@@ -4,6 +4,7 @@
 	"description": "This extension will help you make sure your local npm packages are not out of date with the package.json specified versions.",
 	"version": "1.1.1",
 	"publisher": "janeriklysander",
+	"license": "MIT",
 	"repository": {
 		"type": "git",
 		"url": "https://github.com/janeriklysander/npm-dependency-check"
