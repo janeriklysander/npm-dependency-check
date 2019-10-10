@@ -3,9 +3,18 @@ import * as fs from "fs";
 import * as path from "path";
 import * as vscode from "vscode";
 
-let packageWatcher: vscode.FileSystemWatcher;
+const EXTENSION_NAME = "npm-dependency-check";
+
+let packageWatchers: vscode.FileSystemWatcher[] = [];
+let checkPackagesCommand: vscode.Disposable;
 
 export async function activate(context: vscode.ExtensionContext) {
+  log("activate");
+
+  if (packageWatchers.length > 0) {
+    deactivate();
+  }
+
   if (!vscode.workspace.workspaceFolders) {
     return;
   }
@@ -19,43 +28,60 @@ export async function activate(context: vscode.ExtensionContext) {
       return;
     }
 
-    packageWatcher = vscode.workspace.createFileSystemWatcher(packagePattern);
+    const index = packageWatchers.push(vscode.workspace.createFileSystemWatcher(packagePattern)) - 1;
 
-    packageWatcher.onDidChange(
-      async () => checkInstalledModules(workspacePath),
+    packageWatchers[index].onDidChange(
+      async () => await checkInstalledModules(workspacePath),
       [],
       context.subscriptions
     );
 
-    checkInstalledModules(workspacePath);
+    await checkInstalledModules(workspacePath);
   }
+  
+  checkPackagesCommand = vscode.commands.registerCommand(
+    `${EXTENSION_NAME}.checkPackages`,
+    async () => {
+      const workspaceFolder = await vscode.window.showWorkspaceFolderPick();
+
+      if (!workspaceFolder) {
+        vscode.window.showWarningMessage(
+          `You didn't select a workspace`
+        );
+        return;
+      }
+
+      checkInstalledModules(workspaceFolder.uri.path);
+    }
+  );
 }
 
 async function checkInstalledModules(workspacePath: string) {
-  const config = vscode.workspace.getConfiguration("npm-dependency-check");
+  const config = vscode.workspace.getConfiguration(EXTENSION_NAME);
   const installedCheckCommand = "installed-check --version-check";
 
   await exec(installedCheckCommand, { cwd: workspacePath }).catch(() => {
-    const npmInstall = "Fix this for me";
+    const fixIt = "Fix this for me";
+    const modal = config.get<boolean>("openWarningInModal");
     vscode.window
       .showWarningMessage(
-        "Your installed npm packages are out of date.",
-        {
-          modal: config.get<boolean>("openWarningInModal")
-        },
-        ...[npmInstall]
+        `Your installed packages are out of date.`,
+        { modal },
+        ...[fixIt]
       )
       .then(async value => {
-        if (value === npmInstall) {
-          await exec("npm install", { cwd: workspacePath })
+        if (value === fixIt) {
+          const packageManager = config.get<string>("packageManager");
+          await exec(`${packageManager} install`, { cwd: workspacePath })
             .then(() => {
               vscode.window.showInformationMessage(
-                "Your npm packages are now up to date, happy coding!"
+                `Your packages are now up to date, happy coding!`
               );
             })
             .catch(() => {
               vscode.window.showErrorMessage(
-                'Oh this is awkward, the "npm install" failed. Please try manually, sorry!'
+                `Oh this is awkward, the "${packageManager} install" failed. Please try manually, sorry!`,
+                { modal }
               );
             });
         }
@@ -85,7 +111,13 @@ function exec(
   });
 }
 
+function log(...args: unknown[]) {
+  console.log(`${EXTENSION_NAME}:`, ...args);
+}
+
 export function deactivate() {
-  console.log("deactivate");
-  packageWatcher.dispose();
+  log("deactivate");
+  packageWatchers.map(pW => pW.dispose());
+  packageWatchers = [];
+  checkPackagesCommand.dispose();
 }

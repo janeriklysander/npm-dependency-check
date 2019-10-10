@@ -20,6 +20,14 @@ If you want to make sure you don't miss the warning you can configure the extens
 "npm-dependency-check.openWarningInModal": false
 ```
 
+### Package manager 
+
+You can set your package manager (npm or yarn, npm is the default) by using this configuration setting:
+
+```json
+"npm-dependency-check.packageManager": "yarn"
+```
+
 ## Credit
 
 This extension is possible thanks to [installed-check](https://github.com/voxpelli/node-installed-check), go star that puppy!
@@ -37,3 +45,7 @@ Added configuration option to have the warning message opened in a popup modal i
 ### 1.1.1
 
 Updated README.md and package.json with documentation and some naming convention stuff.. You know, the stuff you do while bored. Enjoy!
+
+### 1.2.0
+
+Added support for `yarn` and added a manual command to check your dependencies: `Check installed packages`

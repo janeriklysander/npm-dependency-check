@@ -1,8 +1,8 @@
 {
 	"name": "npm-dependency-check",
-	"displayName": "npm Dependency Check",
-	"description": "This extension will help you make sure your local npm packages are not out of date with the package.json specified versions.",
-	"version": "1.1.1",
+	"displayName": "Dependency Check",
+	"description": "This extension will help you make sure your local npm/yarn packages are not out of date with the package.json specified versions.",
+	"version": "1.2.0",
 	"publisher": "janeriklysander",
 	"license": "MIT",
 	"repository": {
@@ -13,6 +13,10 @@
 		"vscode": "^1.38.0"
 	},
 	"contributes": {
+		"commands": {
+			"command": "npm-dependency-check.checkPackages",
+			"title": "Check installed packages"
+		},
 		"configuration": {
 			"title": "npm Depencency Check",
 			"properties": {
@@ -20,6 +24,12 @@
 					"type": "boolean",
 					"default": false,
 					"description": "Open the warning in a popup modal."
+				},
+				"npm-dependency-check.packageManager": {
+					"type": "string",
+					"enum": ["npm", "yarn"],
+					"default": "npm",
+					"description": "Your package manager of choice (npm or yarn)"
 				}
 			}
 		}
