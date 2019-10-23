@@ -49,3 +49,7 @@ Updated README.md and package.json with documentation and some naming convention
 ### 1.2.0
 
 Added support for `yarn` and added a manual command to check your dependencies: `Check installed packages`
+
+### 1.3.0
+
+Add option to not register file watcher which might cause issues in large workspaces: `npm-dependency-check.packageFileWatcher`

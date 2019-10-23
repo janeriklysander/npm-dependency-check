@@ -10,6 +10,7 @@ let checkPackagesCommand: vscode.Disposable;
 
 export async function activate(context: vscode.ExtensionContext) {
   log("activate");
+  const config = vscode.workspace.getConfiguration(EXTENSION_NAME);
 
   if (packageWatchers.length > 0) {
     deactivate();
@@ -22,36 +23,41 @@ export async function activate(context: vscode.ExtensionContext) {
   for (let workspaceFolder of vscode.workspace.workspaceFolders) {
     const workspacePath = workspaceFolder.uri.fsPath;
 
+    checkInstalledModules(workspacePath);
+
     const packagePattern = path.join(workspacePath, "package.json");
 
-    if (!(await exists(packagePattern))) {
+    if (
+      !config.get<boolean>("packageFileWatcher") ||
+      (await exists(packagePattern))
+    ) {
       return;
     }
 
-    const index = packageWatchers.push(vscode.workspace.createFileSystemWatcher(packagePattern)) - 1;
+    const index =
+      packageWatchers.push(
+        vscode.workspace.createFileSystemWatcher(packagePattern)
+      ) - 1;
 
     packageWatchers[index].onDidChange(
       async () => await checkInstalledModules(workspacePath),
       [],
       context.subscriptions
     );
-
-    await checkInstalledModules(workspacePath);
   }
-  
+
   checkPackagesCommand = vscode.commands.registerCommand(
     `${EXTENSION_NAME}.checkPackages`,
     async () => {
       const workspaceFolder = await vscode.window.showWorkspaceFolderPick();
 
       if (!workspaceFolder) {
-        vscode.window.showWarningMessage(
-          `You didn't select a workspace`
-        );
+        vscode.window.showWarningMessage(`You didn't select a workspace`);
         return;
       }
 
       checkInstalledModules(workspaceFolder.uri.path);
+
     }
   );
 }
@@ -60,9 +66,10 @@ async function checkInstalledModules(workspacePath: string) {
   const config = vscode.workspace.getConfiguration(EXTENSION_NAME);
   const installedCheckCommand = "installed-check --version-check";
 
-  await exec(installedCheckCommand, { cwd: workspacePath }).catch(() => {
+  return await exec(installedCheckCommand, { cwd: workspacePath }).catch(() => {
     const fixIt = "Fix this for me";
     const modal = config.get<boolean>("openWarningInModal");
+
     vscode.window
       .showWarningMessage(
         `Your installed packages are out of date.`,
